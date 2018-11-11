@@ -1,0 +1,21 @@
+.App {
+  text-align: center;
+  background-color: #F4F2F0;
+}
+
+html{
+  background-color: #F4F2F0;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
