@@ -35,6 +35,7 @@ const styles={
         color: 'white',
     },
     dropzone:{
+        textAlign: 'center',
         backgroundColor: '#2CBFA4',
         width: 500,
         cursor: 'pointer'

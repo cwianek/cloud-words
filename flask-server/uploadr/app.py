@@ -3,6 +3,7 @@ from flask_cors import CORS
 import os
 import json
 import glob
+import math
 import re
 from rake_nltk import Rake
 from uuid import uuid4
@@ -19,7 +20,7 @@ def upload():
         processed.append(process_article(article))
     sorted_articles = sorted(processed, key=lambda k: k['date'])
     similarity = calc_similarity(sorted_articles)
-    return jsonify({'articles': sorted_articles, 'similarity': similarity})
+    return jsonify({'articles': sorted_articles, 'similarity': similarity, 'aggregated': aggregate_articles(sorted_articles)})
 
 def get_author(text):
     author = re.compile('author{(.*?)}', re.MULTILINE)
@@ -93,3 +94,26 @@ def calc_similarity(articles):
                             article['similarity_dict'][_article['title']] = []
                         article['similarity_dict'][_article['title']].append(_keyword['word'])
     return similarity_dict
+
+
+def aggregate_articles(articles):
+    result = []
+    items_to_aggregate = 4
+    iters = math.ceil(len(articles) / items_to_aggregate)
+    for i in range(0,iters):        
+        last_date = articles[i*items_to_aggregate-1]['date']
+        top_keywords = []    
+        for j in range(i*items_to_aggregate, i*items_to_aggregate + items_to_aggregate):
+            if len(articles) <= j:
+                continue
+            for keyword in articles[j]['keywords']:
+                found = False
+                for _k in top_keywords:
+                    if keyword['word'] == _k['word']:
+                        found = True
+                        #_k['value'] = _k['value'] + keyword['value']
+                if found == False:
+                    top_keywords.append(keyword)
+        
+        result.append({'date': last_date, 'value': top_keywords})
+    return list(reversed(result))

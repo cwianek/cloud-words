@@ -2,11 +2,11 @@ import React, { Component } from 'react';
 import FileUpload from '../file-upload/file-upload.component';
 import Timeline from '../timeline/timeline.component';
 import request from 'superagent';
-
+import HorizTimeline from '../horiz-timeline/horiz-timeline.component';
 class MainView extends Component {
     constructor() {
         super();
-        this.state = { files: [], parsedArticles:[], similarArticles: {}};
+        this.state = { files: [], parsedArticles: [], similarArticles: {}, showArticles: true };
     }
 
     onDropFiles = (files) => {
@@ -45,21 +45,58 @@ class MainView extends Component {
     }
 
     handleServerResponse = (err, res) => {
-        if(err){
+        if (err) {
             console.error(err);
             return;
         }
         console.log(res)
-        this.setState({parsedArticles: res.body.articles});
+        this.setState({ parsedArticles: res.body.articles, aggregated: res.body.aggregated });
+    }
+
+    toggleShow = () => {
+        this.setState({showArticles: !this.state.showArticles})
     }
 
     render() {
         return (
             <div>
                 <FileUpload onDrop={this.onDropFiles} />
+                {this.state.parsedArticles.length ?
+                    <div style={styles.toggleStyle}>
+                    {
+                        this.state.showArticles ? 
+                        <div onClick={this.toggleShow} style={styles.button}>Show timeline</div>
+                        : <div onClick={this.toggleShow} style={styles.button}>Show articles</div>
+                    }
+                    </div>
+                    : null
+                }
+                { this.state.showArticles ? 
                 <Timeline data={this.state.parsedArticles} />
-            </div>
+                : <HorizTimeline data={this.state.aggregated} style={styles.timeline} />
+                }
+            </div >
         );
+    }
+}
+
+const styles = {
+    toggleStyle:{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        textAlign: 'center',
+    },
+    button:{
+        backgroundColor: '#6c757d',
+        width: 100,
+        padding: 5,
+        color: 'white',
+        cursor: 'pointer',
+        marginBottom: 20
+    },
+    timeline:{
+        margin: 30,
     }
 }
 
