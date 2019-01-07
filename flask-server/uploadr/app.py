@@ -6,6 +6,7 @@ import glob
 import re
 from rake_nltk import Rake
 from uuid import uuid4
+import random
 
 app = Flask(__name__)
 CORS(app)
@@ -16,19 +17,26 @@ def upload():
     processed = []
     for article in articles['data']:
         processed.append(process_article(article))
-    return jsonify(processed)
+    sorted_articles = sorted(processed, key=lambda k: k['date'])
+    similarity = calc_similarity(sorted_articles)
+    return jsonify({'articles': sorted_articles, 'similarity': similarity})
 
 def get_author(text):
     author = re.compile('author{(.*?)}', re.MULTILINE)
     author = re.findall(author,text)
     if author:
-        return author[0]
+        return author
     return ""
 
 def get_title(text):
     title = re.compile('title{(.*?)}', re.DOTALL)
     title = re.findall(title,text)[0]
     return title
+
+def get_date(text):
+    date = re.compile('date{(.*?)}', re.DOTALL)
+    date = re.findall(date, text)[0]
+    return date
 
 def get_abstract_keywords(text):
     abstract = re.compile('begin{abstract}(.*?)\\\\end{abstract}', re.DOTALL)
@@ -54,15 +62,34 @@ def get_keywords(text):
 def get_concatenated_keywords(text):
     keywords = get_keywords(text)
     abstract_keywords, max_rank = get_abstract_keywords(text)
+
     concatenated_keywords = []
     for keyword in keywords:
-        concatenated_keywords.append({'value': max_rank * 2, 'word': keyword})
+        concatenated_keywords.append({'value': max_rank/max_rank + random.randint(1,5), 'word': keyword.strip()})
     for rank, keyword in abstract_keywords:
-        concatenated_keywords.append({'value': rank, 'word': keyword})
+        concatenated_keywords.append({'value': rank/max_rank, 'word': keyword.strip()})
     return concatenated_keywords
 
 def process_article(text):
     author = get_author(text)
     title = get_title(text)
+    date = get_date(text)
     keywords = get_concatenated_keywords(text)
-    return {'author': author, 'title': title, 'keywords': keywords}
+    return {'author': author, 'title': title, 'keywords': keywords, 'date': date}
+
+def calc_similarity(articles):
+    similarity_dict = {}
+    for article in articles:
+        article['similarity_dict'] = {}
+        keywords = article['keywords']
+        for _article in articles:
+            if article['title'] == _article['title']:
+                continue
+            _keywords = _article['keywords']
+            for _keyword in _keywords:
+                for keyword in keywords:
+                    if _keyword['word'] == keyword['word']:
+                        if _article['title'] not in article['similarity_dict']:
+                            article['similarity_dict'][_article['title']] = []
+                        article['similarity_dict'][_article['title']].append(_keyword['word'])
+    return similarity_dict

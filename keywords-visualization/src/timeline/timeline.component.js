@@ -3,13 +3,14 @@ import { VerticalTimeline, VerticalTimelineElement } from 'react-vertical-timeli
 import 'react-vertical-timeline-component/style.min.css';
 import WordCloud from '../word-cloud/word-cloud.component';
 import Modal from 'react-modal';
+import Similarity from '../similarity/similarity.component';
 
 class Timeline extends Component {
     constructor() {
         super();
 
         this.state = {
-            modalIsOpen: false, selectedKeywords: []
+            modalIsOpen: false, selectedKeywords: [], selectedArticle: null
         };
 
         Modal.setAppElement('body')
@@ -19,11 +20,11 @@ class Timeline extends Component {
     }
 
     openModal = (article) => {
-        this.setState({ modalIsOpen: true, selectedKeywords: article.keywords });
+        this.setState({ modalIsOpen: true, selectedKeywords: article.keywords, selectedArticle: null });
     }
 
-    afterOpenModal = () => {
-        // references are now sync'd and can be accessed.
+    openSimilarityModal = (article) => {
+        this.setState({ modalIsOpen: true, selectedArticle: article });
     }
 
     closeModal = () => {
@@ -39,12 +40,14 @@ class Timeline extends Component {
                     <div className="timeline">
                         <Modal
                             isOpen={this.state.modalIsOpen}
-                            onAfterOpen={this.afterOpenModal}
                             onRequestClose={this.closeModal}
                             style={customStyles}
                             contentLabel="Example Modal"
                         >
-                            <WordCloud words={this.state.selectedKeywords} />
+                            {!this.state.selectedArticle ?
+                                <WordCloud words={this.state.selectedKeywords} />
+                                : <Similarity article={this.state.selectedArticle} />
+                            }
                         </Modal>
                         <VerticalTimeline>
                             {
@@ -52,12 +55,19 @@ class Timeline extends Component {
                                     <VerticalTimelineElement
                                         key={article.title}
                                         className="vertical-timeline-element--work"
-                                        date="2016 - present"
+                                        date={article.date}
                                         iconStyle={{ background: 'rgb(33, 150, 243)', color: '#fff' }}
                                     >
-                                        <h3 className="vertical-timeline-element-title">{article.title}</h3>
+                                        <h3 className="vertical-timeline-element-title" style={{ display: 'inline', position: 'left' }}>Title: </h3>
+                                        <h3 style={{ display: 'inline', fontWeight: 'normal' }} >{article.title}</h3>
+                                        <div style={{ padding: 5 }}></div>
+                                        <h3 className="vertical-timeline-element-title" style={{ display: 'inline', position: 'left' }}>Author: </h3>
+                                        <h3 style={{ display: 'inline', fontWeight: 'normal' }} >{article.author}</h3>
                                         {/* <h4 className="vertical-timeline-element-subtitle">Miami, FL</h4> */}
-                                        <p><button style={styles.showButton} onClick={() => this.openModal(article)}>Show word cloud</button></p>
+                                        <p>
+                                            <button style={styles.showButton} onClick={() => this.openModal(article)}>show word cloud</button>
+                                            <button style={styles.showButton} onClick={() => this.openSimilarityModal(article)}>show similar articles</button>                                        
+                                        </p>
                                     </VerticalTimelineElement>
                                 )
                             }
@@ -98,7 +108,8 @@ const styles = {
         color: 'white',
         padding: `5px 5px`,
         textDecoration: 'none',
-        cursor: 'pointer'
+        cursor: 'pointer',
+        margin: '0 5px'
     }
 }
 

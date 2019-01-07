@@ -6,7 +6,7 @@ import request from 'superagent';
 class MainView extends Component {
     constructor() {
         super();
-        this.state = { files: [], parsedArticles:[] };
+        this.state = { files: [], parsedArticles:[], similarArticles: {}};
     }
 
     onDropFiles = (files) => {
@@ -49,7 +49,8 @@ class MainView extends Component {
             console.error(err);
             return;
         }
-        this.setState({parsedArticles: res.body});
+        console.log(res)
+        this.setState({parsedArticles: res.body.articles});
     }
 
     render() {
