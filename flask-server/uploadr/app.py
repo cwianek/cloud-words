@@ -100,8 +100,12 @@ def aggregate_articles(articles):
     result = []
     items_to_aggregate = 4
     iters = math.ceil(len(articles) / items_to_aggregate)
-    for i in range(0,iters):        
-        last_date = articles[i*items_to_aggregate-1]['date']
+    for i in range(0,iters):
+        if i == 3:
+            last_date = articles[-1]['date']
+        else:
+            last_date = articles[(i+1)*items_to_aggregate-1]['date']
+        print(last_date)
         top_keywords = []    
         for j in range(i*items_to_aggregate, i*items_to_aggregate + items_to_aggregate):
             if len(articles) <= j:
@@ -116,4 +120,4 @@ def aggregate_articles(articles):
                     top_keywords.append(keyword)
         
         result.append({'date': last_date, 'value': top_keywords})
-    return list(reversed(result))
+    return list(result)
